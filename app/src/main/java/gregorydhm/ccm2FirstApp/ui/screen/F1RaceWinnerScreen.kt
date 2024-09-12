@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,20 +24,24 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import gregorydhm.ccm2FirstApp.ui.model.F1DriverUi
-import gregorydhm.ccm2FirstApp.ui.model.ItemUi
+import gregorydhm.ccm2FirstApp.ui.model.F1RaceWinnerUi
+import gregorydhm.ccm2FirstApp.ui.viewmodel.F1RaceWinnerModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun F1DriversScreen(
     navController: NavController,
+    viewModel: F1RaceWinnerModel = viewModel()
 ) {
     Scaffold(
         topBar = {
@@ -47,7 +53,30 @@ fun F1DriversScreen(
                     }
                 }
             )
+        },
+        bottomBar = {
+            Row {
+                Button(
+                    modifier = Modifier.weight(1f),
+                    content = {
+                        Text("Add")
+                    },
+                    onClick = {
+                        viewModel.insertF1DriverWinRace()
+                    }
+                )
+                Button(
+                    modifier = Modifier.weight(1f),
+                    content = {
+                        Text("Delete")
+                    },
+                    onClick = {
+                        viewModel.deleteAllF1RaceWinner()
+                    }
+                )
+            }
         }
+
     ) { padding ->
         Column(
             modifier = Modifier.padding(padding)
@@ -73,11 +102,14 @@ fun F1DriversScreen(
 
 @Composable
 private fun F1DriversScreen() {
+    val viewModel: F1RaceWinnerModel = viewModel()
+    //val listOfResult = viewModel.f1DriverList.collectAsState().value
+    val listOfResult = viewModel.f1RaceWinnerList.collectAsState(emptyList()).value
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
     ) {
-        val listOfResult: MutableList<F1DriverUi> = mutableListOf()
+        /*val listOfResult: MutableList<F1DriverUi> = mutableListOf()
         populateMyF1DriversList()
             .groupBy { it.name }
             .forEach { (name, drivers) ->
@@ -95,7 +127,7 @@ private fun F1DriversScreen() {
                         actif = drivers.first().actif
                     )
                 )
-            }
+            }*/
         LazyColumn(
             modifier = Modifier.padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -103,7 +135,7 @@ private fun F1DriversScreen() {
         ) {
             items(listOfResult) { item ->
                 when (item) {
-                    is F1DriverUi.Header ->
+                    is F1RaceWinnerUi.Header ->
                         OutlinedCard(
                             modifier = Modifier.fillParentMaxWidth()
                         ) {
@@ -121,7 +153,7 @@ private fun F1DriversScreen() {
                             }
                         }
 
-                    is F1DriverUi.f1DriverObject -> OutlinedCard(
+                    is F1RaceWinnerUi.Item -> OutlinedCard(
                         modifier = Modifier.fillParentMaxWidth()
                     ) {
                         Column(
@@ -131,19 +163,54 @@ private fun F1DriversScreen() {
                             horizontalAlignment = Alignment.Start
                         ) {
                             Text(
-                                text = "Circuit: ${item.victoire}",
+                                text = "Circuit: ${item.Circuit}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Number of victories total: ${item.nbVictoire}",
+                                text = "Number de tours: ${item.laps}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            if (item.domicile){
+                                Text(
+                                    text = "Victoire à domicile",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF388E3C)
+                                )
+                            }
+                        }
+                    }
+                    is F1RaceWinnerUi.Footer ->
+                        OutlinedCard(
+                            modifier = Modifier.fillParentMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillParentMaxWidth()
+                                    .padding(8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "Total de victoires : ${item.footer}",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    is F1RaceWinnerUi.FooterTotal -> OutlinedCard(
+                        modifier = Modifier.fillParentMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillParentMaxWidth()
+                                .padding(8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
                             Text(
-                                text = "Active: ${if (item.actif) "Yes" else "No"}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface
+                                text = "Total de Courses : ${item.footerTotal}",
+                                style = MaterialTheme.typography.displaySmall,
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -152,17 +219,6 @@ private fun F1DriversScreen() {
         }
 
     }
-}
-
-private fun populateMyF1DriversList(): List<F1DriverUi.f1DriverObject> {
-    return listOf<F1DriverUi.f1DriverObject>(
-        F1DriverUi.f1DriverObject(name = "Charles Leclerc","Monaco", nbVictoire = 7, actif = true),
-        F1DriverUi.f1DriverObject(name = "Charles Leclerc","Monza", nbVictoire = 7, actif = true),
-        F1DriverUi.f1DriverObject(name = "Pierre Gasly","" ,nbVictoire = 1, actif = true),
-        F1DriverUi.f1DriverObject(name = "Lando Norris","Miami", nbVictoire = 2, actif = true),
-        F1DriverUi.f1DriverObject(name = "Alexander Albon", "", nbVictoire = 0, actif = true),
-        F1DriverUi.f1DriverObject(name = "Logan Sargeant", "", nbVictoire = 0, actif = false),
-    )
 }
 @Composable
 private fun F1Image() {
@@ -173,7 +229,7 @@ private fun F1Image() {
                 .build()
         )
         Image(
-            modifier = Modifier.size(100.dp),
+            modifier = Modifier.size(200.dp),
             painter = painter,
             contentDescription = null,
         )

@@ -16,7 +16,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun MainScreen(
     onButtonClick: () -> Unit,
-    onF1DriversClick: () -> Unit
+    onF1DriversClick: () -> Unit,
+    onQuoteClick: () -> Unit,
+    onPersonClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -30,15 +32,29 @@ fun MainScreen(
         Row{
             Button(
                 content = {
-                    Text("go to list screen")
+                    Text("list screen")
                 },
                 onClick = { onButtonClick() }
             )
             Button(
                 content = {
-                    Text("go to F1 drivers list")
+                    Text("F1 drivers list")
                 },
                 onClick = { onF1DriversClick() }
+            )
+        }
+        Row{
+            Button(
+                content = {
+                    Text("quote screen")
+                },
+                onClick = { onQuoteClick() }
+            )
+            Button(
+                content = {
+                    Text("Person screen")
+                },
+                onClick = { onPersonClick() }
             )
         }
     }
